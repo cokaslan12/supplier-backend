@@ -3,11 +3,13 @@ package db
 //MARK: DBURI
 const (
 	DB_URI string = "mongodb://localhost:27017"
+	DB_TEST_URI string = "mongodb://localhost:27017"
 )
 
 //MARK: DBNAME
 const (
 	DB_NAME string = "supplier"
+	DB_TEST_NAME string = "supplier-test"
 )
 
 //MARK: DBCOLLECTION
