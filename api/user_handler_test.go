@@ -38,7 +38,6 @@ func setup() *testdb {
 	return &testdb{
 		UserStore: db.NewMongoUserStore(
 			client,
-			db.DB_TEST_NAME,
 		),
 	}
 }

@@ -18,3 +18,10 @@ const (
 	HOTEL_COL string = "hotels"
 	ROOM_COL  string = "rooms"
 )
+
+
+type Store struct{
+	UserStore UserStore
+	HotelStore HotelStore
+	RoomStore RoomStore
+}

@@ -13,10 +13,10 @@ import (
 )
 
 type UserHandler struct {
-	store db.UserStore
+	store *db.Store
 }
 
-func NewUserHandler(store db.UserStore) *UserHandler {
+func NewUserHandler(store *db.Store) *UserHandler {
 	return &UserHandler{
 		store: store,
 	}
@@ -40,7 +40,7 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	if err := h.store.UpdateUser(ctx, filter, params); err != nil {
+	if err := h.store.UserStore.UpdateUser(ctx, filter, params); err != nil {
 		return err
 	}
 
@@ -56,7 +56,7 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 	ctx := c.Context()
 	userId := c.Params("id")
 
-	err := h.store.DeleteUser(ctx, userId)
+	err := h.store.UserStore.DeleteUser(ctx, userId)
 
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 		return newUserErr
 	}
 
-	user, err := h.store.InsertUser(c.Context(), user)
+	user, err := h.store.UserStore.InsertUser(c.Context(), user)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	user, err := h.store.GetUserById(c.Context(), id)
+	user, err := h.store.UserStore.GetUserById(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			res := map[string]any{
@@ -132,7 +132,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 
-	users, err := h.store.GetUsers(c.Context())
+	users, err := h.store.UserStore.GetUsers(c.Context())
 	if err != nil {
 		return err
 	}
