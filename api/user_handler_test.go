@@ -16,31 +16,33 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type testdb struct {
-	db.UserStore
+type testDb struct {
+	store *db.Store
 }
 
-func (tDb *testdb) tearDown(t *testing.T) {
+func (tDb *testDb) tearDown(t *testing.T) {
 	ctx := context.TODO()
 
-	if err := tDb.UserStore.Drop(ctx); err != nil {
+	if err := tDb.store.UserStore.Drop(ctx); err != nil {
 		t.Fail()
 	}
 }
 
-func setup() *testdb {
+func setup() *testDb {
 	client, mongoErr := mongo.Connect(context.TODO(), options.Client().
 		ApplyURI(db.DB_TEST_URI))
 	if mongoErr != nil {
 		log.Fatal(mongoErr)
 	}
 
-	return &testdb{
-		UserStore: db.NewMongoUserStore(
-			client,
-			db.DB_TEST_NAME,
-		),
+	return &testDb{
+		store: &db.Store{
+			UserStore: db.NewMongoUserStore(
+				client,
+			),
+		},
 	}
+
 }
 
 func TestPostUser(t *testing.T) {
@@ -51,7 +53,7 @@ func TestPostUser(t *testing.T) {
 	app := fiber.New()
 
 	//MARK: HANDLER INITIALIZATION
-	userHandler := NewUserHandler(tDb.UserStore)
+	userHandler := NewUserHandler(tDb.store)
 
 	//MARK: USERS API
 	app.Post("/user", userHandler.HandlePostUser)

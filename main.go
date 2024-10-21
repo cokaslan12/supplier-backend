@@ -31,8 +31,19 @@ func main() {
 		log.Fatal(mongoErr)
 	}
 
+	//MARK: STORE INITIALIZATION
+	userStore := db.NewMongoUserStore(client)
+	hotelStore := db.NewMongoHotelStore(client)
+	roomStore := db.NewMongoRoomStore(client, hotelStore)
+	store := db.Store{
+		UserStore:  userStore,
+		HotelStore: hotelStore,
+		RoomStore:  roomStore,
+	}
+
 	//MARK: HANDLER INITIALIZATION
-	userHandler := api.NewUserHandler(db.NewMongoUserStore(client, db.DB_NAME))
+	userHandler := api.NewUserHandler(&store)
+	hotelHandler := api.NewHotelHandler(&store)
 
 	app := fiber.New(config)
 	apiV1 := app.Group("/api/v1")
@@ -43,6 +54,11 @@ func main() {
 	apiV1.Get("/user/:id/get", userHandler.HandleGetUser)
 	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	apiV1.Put("/user/:id/put", userHandler.HandlePutUser)
+
+	//MARK: HOTELS API
+	apiV1.Get("/hotels", hotelHandler.HandleGetHotels)
+	apiV1.Get("/hotel/:id/get", hotelHandler.HandleGetHotel)
+	apiV1.Get("/hotel/:id/rooms", hotelHandler.HandleGetRooms)
 
 	err := app.Listen(*listenAddr)
 
