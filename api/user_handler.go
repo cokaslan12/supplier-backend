@@ -22,6 +22,7 @@ func NewUserHandler(store *db.Store) *UserHandler {
 	}
 }
 
+
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	ctx := c.Context()
 	var (

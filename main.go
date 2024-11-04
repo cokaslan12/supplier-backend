@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"supplier-backend/api"
+	"supplier-backend/api/middleware"
 	"supplier-backend/db"
 
 	"github.com/gofiber/fiber/v2"
@@ -42,12 +43,18 @@ func main() {
 	}
 
 	//MARK: HANDLER INITIALIZATION
+	authHandler := api.NewAuthHandler(&store)
 	userHandler := api.NewUserHandler(&store)
 	hotelHandler := api.NewHotelHandler(&store)
 
 	app := fiber.New(config)
-	apiV1 := app.Group("/api/v1")
+	auth := app.Group("/api")
+	apiV1 := app.Group("/api/v1", middleware.JWTAuthentication)
 
+	//MARK: AUTH API
+	auth.Post("/auth", authHandler.HandleAuthenticate)
+
+	//VERSIONED API ROUTES
 	//MARK: USERS API
 	apiV1.Post("/user", userHandler.HandlePostUser)
 	apiV1.Get("/users", userHandler.HandleGetUsers)
