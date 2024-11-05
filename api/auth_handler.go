@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"supplier-backend/db"
+	"supplier-backend/types"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthHandler struct {
@@ -26,6 +29,16 @@ type AuthParams struct {
 	Password string `json:"password"`
 }
 
+type AuthResponse struct {
+	User  *types.User `json:"user"`
+	Token string      `json:"token"`
+}
+
+// A handler should do:
+// - serialization of the incoming request (JSON)
+// - do some data fetching from db
+// - call some business logic
+// - return the data back the user
 func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	ctx := context.Background()
 	var params AuthParams
@@ -46,13 +59,40 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 		return err
 	}
 
-	compareErr := bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(params.Password))
-	if compareErr != nil {
+	if !types.IsValidPassword(user.EncryptedPassword, params.Password) {
 		return fmt.Errorf("invalid credentials")
 	}
 
-	fmt.Println("authenticated -> ", user)
+	resp := AuthResponse{
+		User:  user,
+		Token: CreateTokenFromUser(user),
+	}
 
-	return nil
+	res := map[string]any{
+		"success": true,
+		"message": "Request successfuly",
+		"data":    resp,
+	}
 
+	return c.Status(200).JSON(res)
+}
+
+func CreateTokenFromUser(user *types.User) string {
+	now := time.Now()
+	expires := now.Add(time.Hour * 4).Unix()
+	claims := jwt.MapClaims{
+		"id":      user.ID,
+		"email":   user.Email,
+		"expires": expires,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	secret := os.Getenv("JWT_SECRET")
+
+	fmt.Println("---- ", secret, " ----")
+	tokenStr, err := token.SignedString([]byte(secret))
+	if err != nil {
+		fmt.Println("failed to sign token with secret")
+
+	}
+	return tokenStr
 }

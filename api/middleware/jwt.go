@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -21,14 +22,23 @@ func JWTAuthentication(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(res)
 	}
 
-	if err := parseToken(token); err != nil {
+	claims, err := validateToken(token)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	expiresFloat := claims["expires"].(float64)
+	expires := int64(expiresFloat)
+
+	// check token expiration
+	if time.Now().Unix() > expires {
+		return fmt.Errorf("token expired")
+	}
+
+	return c.Next()
 }
 
-func parseToken(tokenString string) error {
+func validateToken(tokenString string) (jwt.MapClaims, error) {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 
@@ -37,20 +47,26 @@ func parseToken(tokenString string) error {
 			return nil, fmt.Errorf("unauthorized")
 		}
 
-		secret := os.Getenv("JWT_SECRET") //WE ARE GETTING COMPUTER ENVIRONMENT VARIABLES, OS COMMUNICATES ITH THE OPERATION SYSTEM
-		fmt.Println("NEVER PRINT SECRET: ", secret)
+		secret := os.Getenv("JWT_SECRET") //WE ARE GETTING COMPUTER ENVIRONMENT VARIABLES, OS COMMUNICATES ITH THE OPERATION SYSTEM EXPORT JWT_SECRET="SUPPLIER-BACKEND"
 		return []byte(secret), nil
 	})
 
 	if err != nil {
 
 		fmt.Println("failed to parse JWT Token: ", err)
-		return fmt.Errorf("unauthorized")
+		return nil, fmt.Errorf("unauthorized")
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println(claims)
+	if !token.Valid {
+		fmt.Println("invalid token")
+		return nil, fmt.Errorf("unauthorized")
 	}
 
-	return fmt.Errorf("unauthorized")
+	claims, ok := token.Claims.(jwt.MapClaims)
+
+	if !ok {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	return claims, nil
 }
