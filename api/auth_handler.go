@@ -34,6 +34,15 @@ type AuthResponse struct {
 	Token string      `json:"token"`
 }
 
+func invalidCredentials(c *fiber.Ctx) error {
+	res := map[string]any{
+		"success": false,
+		"error":   "invalid credentials",
+	}
+
+	return c.Status(400).JSON(res)
+}
+
 // A handler should do:
 // - serialization of the incoming request (JSON)
 // - do some data fetching from db
@@ -44,14 +53,9 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	var params AuthParams
 	if err := c.BodyParser(&params); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			res := map[string]any{
-				"success": false,
-				"error":   "invalid credentials",
-			}
-
-			return c.Status(400).JSON(res)
+			return invalidCredentials(c)
 		}
-		return err
+		return invalidCredentials(c)
 	}
 
 	user, err := h.store.UserStore.GetUserByEmail(ctx, params.Email)
@@ -60,7 +64,7 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	}
 
 	if !types.IsValidPassword(user.EncryptedPassword, params.Password) {
-		return fmt.Errorf("invalid credentials")
+		return invalidCredentials(c)
 	}
 
 	resp := AuthResponse{
