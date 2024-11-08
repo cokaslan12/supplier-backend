@@ -17,11 +17,11 @@ const (
 	USER_COL  string = "users"
 	HOTEL_COL string = "hotels"
 	ROOM_COL  string = "rooms"
+	BOOK_COL  string = "booking"
 )
 
-
-type Store struct{
-	UserStore UserStore
+type Store struct {
+	UserStore  UserStore
 	HotelStore HotelStore
-	RoomStore RoomStore
+	RoomStore  RoomStore
 }

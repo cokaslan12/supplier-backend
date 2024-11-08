@@ -81,9 +81,7 @@ func main() {
 	seedHotel("Bellucia", "France", 3)
 	seedHotel("The Cozy Hotel", "The Nederlands", 4)
 	seedHotel("Dont Die In Your Sleep", "London", 1)
-	seedUser("muzaffer","çokaslan","cokaslanmuzaffer@gmail.com")
-	seedUser("muzaffer","çokaslan","cokaslanmuzaffer@gmail.com")
-	seedUser("muzaffer","çokaslan","cokaslanmuzaffer@gmail.com")
+	seedUser("muzaffer", "çokaslan", "cokaslanmuzaffer@gmail.com")
 }
 
 func init() {
