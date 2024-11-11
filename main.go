@@ -14,8 +14,8 @@ import (
 )
 
 var config = fiber.Config{
-	ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-		return ctx.Status(400).JSON(map[string]any{
+	ErrorHandler: func(c *fiber.Ctx, err error) error {
+		return c.Status(400).JSON(map[string]any{
 			"success": false,
 			"error":   err.Error(),
 		})
@@ -36,10 +36,12 @@ func main() {
 	userStore := db.NewMongoUserStore(client)
 	hotelStore := db.NewMongoHotelStore(client)
 	roomStore := db.NewMongoRoomStore(client, hotelStore)
+	bookingStore := db.NewMongoBookingStore(client)
 	store := db.Store{
-		UserStore:  userStore,
-		HotelStore: hotelStore,
-		RoomStore:  roomStore,
+		UserStore:    userStore,
+		HotelStore:   hotelStore,
+		RoomStore:    roomStore,
+		BookingStore: bookingStore,
 	}
 
 	//MARK: HANDLER INITIALIZATION
@@ -70,6 +72,7 @@ func main() {
 
 	//MARK: ROOMS API
 	apiV1.Post("/room/:id/book", roomHandler.HandleBookRoom)
+	apiV1.Get("/rooms", roomHandler.HandleGetRooms)
 
 	err := app.Listen(*listenAddr)
 

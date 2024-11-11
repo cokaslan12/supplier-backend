@@ -14,14 +14,15 @@ const (
 
 // MARK: DBCOLLECTION
 const (
-	USER_COL  string = "users"
-	HOTEL_COL string = "hotels"
-	ROOM_COL  string = "rooms"
-	BOOK_COL  string = "booking"
+	USER_COL    string = "users"
+	HOTEL_COL   string = "hotels"
+	ROOM_COL    string = "rooms"
+	BOOKING_COL string = "bookings"
 )
 
 type Store struct {
-	UserStore  UserStore
-	HotelStore HotelStore
-	RoomStore  RoomStore
+	UserStore    UserStore
+	HotelStore   HotelStore
+	RoomStore    RoomStore
+	BookingStore BookingStore
 }
