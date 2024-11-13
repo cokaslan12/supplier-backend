@@ -42,7 +42,7 @@ func NewRoomHandler(store *db.Store) *RoomHandler {
 }
 
 func (r *RoomHandler) HandleGetRooms(c *fiber.Ctx) error {
-	rooms, err := r.store.BookingStore.GetBookings(c.Context(), bson.M{})
+	rooms, err := r.store.RoomStore.GetRooms(c.Context(), bson.M{})
 
 	if err != nil {
 		return err

@@ -49,10 +49,12 @@ func main() {
 	userHandler := api.NewUserHandler(&store)
 	hotelHandler := api.NewHotelHandler(&store)
 	roomHandler := api.NewRoomHandler(&store)
+	bookingHandler := api.NewBookingHandler(&store)
 
 	app := fiber.New(config)
 	auth := app.Group("/api")
 	apiV1 := app.Group("/api/v1", middleware.JWTAuthentication(userStore))
+	admin := apiV1.Group("/admin", middleware.AdminAuth)
 
 	//MARK: AUTH API
 	auth.Post("/auth", authHandler.HandleAuthenticate)
@@ -73,6 +75,14 @@ func main() {
 	//MARK: ROOMS API
 	apiV1.Post("/room/:id/book", roomHandler.HandleBookRoom)
 	apiV1.Get("/rooms", roomHandler.HandleGetRooms)
+	//TODO: CANCEL A BOOKING
+
+	//MARK: BOOKING API
+	//ADMIN
+	admin.Get("/booking", bookingHandler.HandleGetBookings)
+
+	//USERS
+	apiV1.Get("/booking/:id", bookingHandler.HandleGetBooking)
 
 	err := app.Listen(*listenAddr)
 
