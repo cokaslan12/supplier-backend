@@ -75,7 +75,6 @@ func main() {
 	//MARK: ROOMS API
 	apiV1.Post("/room/:id/book", roomHandler.HandleBookRoom)
 	apiV1.Get("/rooms", roomHandler.HandleGetRooms)
-	//TODO: CANCEL A BOOKING
 
 	//MARK: BOOKING API
 	//ADMIN
@@ -83,6 +82,7 @@ func main() {
 
 	//USERS
 	apiV1.Get("/booking/:id", bookingHandler.HandleGetBooking)
+	apiV1.Get("/booking/:id/cancel", bookingHandler.HandleCancelBooking)
 
 	err := app.Listen(*listenAddr)
 

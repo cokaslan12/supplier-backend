@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"supplier-backend/api"
 	"supplier-backend/db"
 	"supplier-backend/types"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,10 +19,11 @@ var (
 	roomStore  db.RoomStore
 	hotelStore db.HotelStore
 	userStore  db.UserStore
+	bookStore  db.BookingStore
 	ctx        = context.Background()
 )
 
-func seedUser(isAdmin bool, fName, lName, email, password string) {
+func seedUser(isAdmin bool, fName, lName, email, password string) *types.User {
 	params := types.CreateUser{
 		FirstName: fName,
 		LastName:  lName,
@@ -34,14 +38,51 @@ func seedUser(isAdmin bool, fName, lName, email, password string) {
 
 	user.IsAdmin = isAdmin
 
-	_, InsertedErr := userStore.InsertUser(ctx, user)
+	InsertedUser, InsertedErr := userStore.InsertUser(ctx, user)
 	if err != nil {
 		log.Fatal(InsertedErr)
 	}
 
+	fmt.Printf("%s -> %s\n", user.Email, api.CreateTokenFromUser(user))
+
+	return InsertedUser
 }
 
-func seedHotel(name, location string, rating int) {
+func seedRoom(size string, ss bool, price float64, hotelId primitive.ObjectID) *types.Room {
+	room := types.Room{
+		Seaside: ss,
+		Size:    size,
+		Price:   price,
+		HotelID: hotelId,
+	}
+
+	InsertedRoom, InsertedErr := roomStore.InsertRoom(ctx, &room)
+	if InsertedErr != nil {
+		log.Fatal(InsertedErr)
+	}
+
+	return InsertedRoom
+}
+
+func seedBooking(userId primitive.ObjectID, roomId primitive.ObjectID, numPersons int, fromDate time.Time, tillDate time.Time, canceled bool) *types.Booking {
+	booking := types.Booking{
+		UserID:     userId,
+		RoomID:     roomId,
+		NumPersons: numPersons,
+		FromDate:   fromDate,
+		TillDate:   tillDate,
+		Canceled:   canceled,
+	}
+
+	InsertedBooking, InsertedErr := bookStore.InsertBooking(ctx, &booking)
+	if InsertedErr != nil {
+		log.Fatal(InsertedErr)
+	}
+
+	return InsertedBooking
+}
+
+func seedHotel(name, location string, rating int) *types.Hotel {
 	hotel := types.Hotel{
 		Name:     name,
 		Location: location,
@@ -49,42 +90,25 @@ func seedHotel(name, location string, rating int) {
 		Rating:   rating,
 	}
 
-	rooms := []types.Room{
-		{
-			Size:  "small",
-			Price: 99.9,
-		},
-		{
-			Size:  "normal",
-			Price: 199.9,
-		},
-		{
-			Size:  "kingsize",
-			Price: 222.9,
-		},
-	}
-
 	insertedHotel, intertedHotelErr := hotelStore.InsertHotel(ctx, &hotel)
 	if intertedHotelErr != nil {
 		log.Fatal(intertedHotelErr)
 	}
 
-	for _, room := range rooms {
-		room.HotelID = insertedHotel.ID
-		_, insertedRoomErr := roomStore.InsertRoom(ctx, &room)
-		if insertedRoomErr != nil {
-			log.Fatal(insertedRoomErr)
-		}
-	}
-
+	return insertedHotel
 }
 
 func main() {
+	seedUser(false, "muzaffer", "çokaslan", "cokaslanmuzaffer@gmail.com", "123456")
+	admin := seedUser(true, "admin", "admin", "admin@gmail.com", "123456")
 	seedHotel("Bellucia", "France", 3)
 	seedHotel("The Cozy Hotel", "The Nederlands", 4)
-	seedHotel("Dont Die In Your Sleep", "London", 1)
-	seedUser(false, "muzaffer", "çokaslan", "cokaslanmuzaffer@gmail.com", "123456")
-	seedUser(true, "admin", "admin", "admin@gmail.com", "123456")
+	hotel := seedHotel("Dont Die In Your Sleep", "London", 1)
+	room := seedRoom("small", true, 99.9, hotel.ID)
+	seedRoom("normal", true, 199.9, hotel.ID)
+	seedRoom("kingsize", true, 222.9, hotel.ID)
+	seedBooking(admin.ID, room.ID, 1, time.Now(), time.Now().AddDate(0, 0, 2), false)
+
 }
 
 func init() {
@@ -108,4 +132,5 @@ func init() {
 	hotelStore = db.NewMongoHotelStore(client)
 	roomStore = db.NewMongoRoomStore(client, hotelStore)
 	userStore = db.NewMongoUserStore(client)
+	bookStore = db.NewMongoBookingStore(client)
 }
