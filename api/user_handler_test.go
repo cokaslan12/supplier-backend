@@ -2,48 +2,14 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http/httptest"
-	"supplier-backend/db"
 	"supplier-backend/types"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type testDb struct {
-	store *db.Store
-}
-
-func (tDb *testDb) tearDown(t *testing.T) {
-	ctx := context.TODO()
-
-	if err := tDb.store.UserStore.Drop(ctx); err != nil {
-		t.Fail()
-	}
-}
-
-func setup() *testDb {
-	client, mongoErr := mongo.Connect(context.TODO(), options.Client().
-		ApplyURI(db.DB_TEST_URI))
-	if mongoErr != nil {
-		log.Fatal(mongoErr)
-	}
-
-	return &testDb{
-		store: &db.Store{
-			UserStore: db.NewMongoUserStore(
-				client,
-			),
-		},
-	}
-
-}
 
 func TestPostUser(t *testing.T) {
 	tDb := setup()
@@ -60,8 +26,8 @@ func TestPostUser(t *testing.T) {
 	params := types.CreateUser{
 		FirstName: "muzaffer",
 		LastName:  "çokaslan",
-		Email:     "cokaslanmuzaffer@gmail.com",
-		Password:  "1234567897",
+		Email:     "muzaffer@cokaslan.com",
+		Password:  "muzaffer_cokaslan",
 	}
 
 	paramsJson, jsonErr := json.Marshal(params)

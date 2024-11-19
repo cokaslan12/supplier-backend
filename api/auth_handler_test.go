@@ -2,42 +2,20 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"net/http/httptest"
 	"reflect"
-	"supplier-backend/db"
-	"supplier-backend/types"
+	"supplier-backend/db/fixtures"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func insertTestUser(t *testing.T, userStore db.UserStore) *types.User {
-	params := types.CreateUser{
-		Email:     "cokaslanmuzaffer@gmail.com",
-		FirstName: "Muzaffer",
-		LastName:  "Çokaslan",
-		Password:  "123456",
-	}
-	user, err := types.NewUserFromParams(params)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, InsertedErr := userStore.InsertUser(context.TODO(), user)
-	if err != nil {
-		t.Fatal(InsertedErr)
-	}
-
-	return user
-}
-
 func TestAuthenticateSuccess(t *testing.T) {
 	tDb := setup()
 	defer tDb.tearDown(t)
-	insertedUser := insertTestUser(t, tDb.store.UserStore)
+	insertedUser := fixtures.AddUser(tDb.store, "muzaffer", "cokaslan", false)
 
 	//MARK: INIT FIBER
 	app := fiber.New()
@@ -48,8 +26,8 @@ func TestAuthenticateSuccess(t *testing.T) {
 	//MARK: AUTH API
 	app.Post("/auth", authHandler.HandleAuthenticate)
 	params := AuthParams{
-		Email:    "cokaslanmuzaffer@gmail.com",
-		Password: "123456",
+		Email:    "muzaffer@cokaslan.com",
+		Password: "muzaffer_cokaslan",
 	}
 
 	paramsJson, jsonErr := json.Marshal(params)
@@ -110,7 +88,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 func TestAuthenticateWithWrongPassword(t *testing.T) {
 	tDb := setup()
 	defer tDb.tearDown(t)
-	insertedUser := insertTestUser(t, tDb.store.UserStore)
+	fixtures.AddUser(tDb.store, "muzaffer", "cokaslan", false)
 
 	//MARK: INIT FIBER
 	app := fiber.New()
@@ -121,8 +99,8 @@ func TestAuthenticateWithWrongPassword(t *testing.T) {
 	//MARK: AUTH API
 	app.Post("/auth", authHandler.HandleAuthenticate)
 	params := AuthParams{
-		Email:    "cokaslanmuzaffer@gmail.com",
-		Password: "wrongpassword",
+		Email:    "muzaffer@cokaslan.com",
+		Password: "wrong_password",
 	}
 
 	paramsJson, jsonErr := json.Marshal(params)
@@ -153,29 +131,13 @@ func TestAuthenticateWithWrongPassword(t *testing.T) {
 		t.Error(unMarshallErr)
 	}
 
-	data, exist := m["data"].(map[string]any)
+	data, exist := m["error"].(string)
 	if !exist {
-		t.Error("User not exist")
+		t.Error("error not exist")
 	}
 
-	dataJson, dataErr := json.Marshal(data)
-	if dataErr != nil {
-		t.Fatal(dataErr)
-	}
-
-	var authResp AuthResponse
-	if err := json.Unmarshal(dataJson, &authResp); err != nil {
-		t.Fatal(err)
-	}
-
-	if authResp.Token == "" {
-		t.Fatalf("expected the JWT TOKEN to be present in the auth response")
-	}
-
-	//Set the encryted password to an empty string, because we do not return that in any json response
-	insertedUser.EncryptedPassword = ""
-	if !reflect.DeepEqual(insertedUser, authResp.User) {
-		t.Fatal("expected user to be present in the inserted user")
+	if data != "invalid credentials" {
+		t.Fatalf("expected response error to be <invalid credentials> but go %s", data)
 	}
 
 }
