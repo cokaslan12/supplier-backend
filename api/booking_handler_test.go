@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
-	"supplier-backend/api/middleware"
 	"supplier-backend/db/fixtures"
+	"supplier-backend/middleware"
 	"supplier-backend/types"
+	"supplier-backend/utils"
 	"testing"
 	"time"
 
@@ -25,7 +26,7 @@ func TestUserGetBooking(t *testing.T) {
 		fromDate        = time.Now()
 		tillDate        = time.Now().AddDate(0, 0, 2)
 		insertedBooking = fixtures.AddBooking(tDb.store, user.ID, room.ID, 1, fromDate, tillDate, false)
-		app             = fiber.New()
+		app             = fiber.New(fiber.Config{ErrorHandler: utils.ErrorHandler})
 		apiRoute        = app.Group("/", middleware.JWTAuthentication(tDb.store.UserStore))
 		bookingHandler  = NewBookingHandler(tDb.store)
 	)

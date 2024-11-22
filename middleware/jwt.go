@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"supplier-backend/db"
+	"supplier-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,11 +20,7 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 		token := c.Get("X-Api-Token")
 
 		if token == "" {
-			res := map[string]any{
-				"success": false,
-				"errors":  "unauthorized",
-			}
-			return c.Status(fiber.StatusUnauthorized).JSON(res)
+			return utils.ErrUnAuthorized()
 		}
 
 		claims, err := validateToken(token)
@@ -35,13 +33,13 @@ func JWTAuthentication(userStore db.UserStore) fiber.Handler {
 
 		// check token expiration
 		if time.Now().Unix() > expires {
-			return fmt.Errorf("token expired")
+			return utils.NewError(http.StatusUnauthorized, false, "token expired")
 		}
 
 		userID := claims["id"].(string)
 		user, err := userStore.GetUserById(c.Context(), userID)
 		if err != nil {
-			return fmt.Errorf("unauthorized")
+			return utils.ErrUnAuthorized()
 		}
 
 		// set the current authenticated user to context
@@ -58,7 +56,7 @@ func validateToken(tokenString string) (jwt.MapClaims, error) {
 
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			fmt.Println("invalid signing method", token.Header["alg"])
-			return nil, fmt.Errorf("unauthorized")
+			return nil, utils.ErrUnAuthorized()
 		}
 
 		secret := os.Getenv("JWT_SECRET") //WE ARE GETTING COMPUTER ENVIRONMENT VARIABLES, OS COMMUNICATES ITH THE OPERATION SYSTEM EXPORT JWT_SECRET="SUPPLIER-BACKEND"
@@ -68,18 +66,18 @@ func validateToken(tokenString string) (jwt.MapClaims, error) {
 	if err != nil {
 
 		fmt.Println("failed to parse JWT Token: ", err)
-		return nil, fmt.Errorf("unauthorized")
+		return nil, utils.ErrUnAuthorized()
 	}
 
 	if !token.Valid {
 		fmt.Println("invalid token")
-		return nil, fmt.Errorf("unauthorized")
+		return nil, utils.ErrUnAuthorized()
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 
 	if !ok {
-		return nil, fmt.Errorf("unauthorized")
+		return nil, utils.ErrUnAuthorized()
 	}
 
 	return claims, nil

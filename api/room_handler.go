@@ -3,8 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"supplier-backend/db"
 	"supplier-backend/types"
+	"supplier-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -76,11 +78,11 @@ func (r *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 
 	user, ok := c.Context().UserValue("user").(*types.User)
 	if !ok {
-		res := map[string]any{
-			"success": false,
-			"message": "server error",
+		return utils.Error{
+			Code:    http.StatusInternalServerError,
+			Success: false,
+			Err:     "server error",
 		}
-		return c.Status(500).JSON(res)
 	}
 
 	ok, err := r.isRoomAvailableForBooking(c.Context(), oid, params)

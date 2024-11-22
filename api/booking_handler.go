@@ -22,21 +22,17 @@ func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.store.BookingStore.GetBookingByID(c.Context(), id)
 	if err != nil {
-		return err
+		return utils.ErrResourceNotFound("booking")
 	}
 
 	user, err := utils.AuthenticatedUser(c)
 
 	if err != nil {
-		return err
+		return utils.ErrUnAuthorized()
 	}
 
 	if booking.UserID != user.ID {
-		res := map[string]any{
-			"success": true,
-			"message": "not authorized",
-		}
-		return c.Status(401).JSON(res)
+		return utils.ErrUnAuthorized()
 	}
 
 	if err := h.store.BookingStore.UpdateBooking(c.Context(), c.Params("id"), bson.M{"canceled": true}); err != nil {
@@ -55,7 +51,7 @@ func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
 func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 	bookings, err := h.store.BookingStore.GetBookings(c.Context(), bson.M{})
 	if err != nil {
-		return err
+		return utils.ErrResourceNotFound("bookings")
 	}
 
 	res := map[string]any{
@@ -71,7 +67,7 @@ func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	booking, err := h.store.BookingStore.GetBookingByID(c.Context(), c.Params("id"))
 	if err != nil {
-		return err
+		return utils.ErrResourceNotFound("booking")
 	}
 	res := map[string]any{
 		"success": true,
@@ -86,11 +82,7 @@ func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	}
 
 	if booking.UserID != user.ID {
-		res := map[string]any{
-			"success": true,
-			"message": "not authorized",
-		}
-		return c.Status(401).JSON(res)
+		return utils.ErrUnAuthorized()
 	}
 
 	return c.Status(200).JSON(res)

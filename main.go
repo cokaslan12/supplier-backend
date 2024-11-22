@@ -5,8 +5,9 @@ import (
 	"flag"
 	"log"
 	"supplier-backend/api"
-	"supplier-backend/api/middleware"
 	"supplier-backend/db"
+	"supplier-backend/middleware"
+	"supplier-backend/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,12 +15,7 @@ import (
 )
 
 var config = fiber.Config{
-	ErrorHandler: func(c *fiber.Ctx, err error) error {
-		return c.Status(400).JSON(map[string]any{
-			"success": false,
-			"error":   err.Error(),
-		})
-	},
+	ErrorHandler: utils.ErrorHandler,
 }
 
 func main() {

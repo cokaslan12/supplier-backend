@@ -3,8 +3,10 @@ package api
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"supplier-backend/db"
 	"supplier-backend/types"
+	"supplier-backend/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,7 +24,6 @@ func NewUserHandler(store *db.Store) *UserHandler {
 	}
 }
 
-
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	ctx := c.Context()
 	var (
@@ -33,12 +34,12 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	//VALIDATE CORRECTNESS OF THE ID
 	oid, oidErr := primitive.ObjectIDFromHex(userId)
 	if oidErr != nil {
-		return oidErr
+		return utils.ErrInValidId()
 	}
 
 	filter := bson.M{"_id": oid}
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return utils.ErrBadRequest()
 	}
 
 	if err := h.store.UserStore.UpdateUser(ctx, filter, params); err != nil {
@@ -75,7 +76,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 
 	var params types.CreateUser
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return utils.ErrBadRequest()
 	}
 
 	if userValidErrs := params.Validate(); len(userValidErrs) > 0 {
@@ -84,7 +85,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 			"message": "Request failure",
 			"errors":  userValidErrs,
 		}
-		return c.Status(400).JSON(res)
+		return c.Status(http.StatusBadRequest).JSON(res)
 	}
 
 	user, newUserErr := types.NewUserFromParams(params)
@@ -135,7 +136,7 @@ func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 
 	users, err := h.store.UserStore.GetUsers(c.Context())
 	if err != nil {
-		return err
+		return utils.ErrResourceNotFound("user")
 	}
 
 	res := map[string]any{
