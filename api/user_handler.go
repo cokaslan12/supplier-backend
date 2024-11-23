@@ -9,7 +9,6 @@ import (
 	"supplier-backend/utils"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -27,7 +26,6 @@ func NewUserHandler(store *db.Store) *UserHandler {
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	ctx := c.Context()
 	var (
-		//values bson.M
 		params types.UpdateUser
 		userId = c.Params("id")
 	)
@@ -37,13 +35,13 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 		return utils.ErrInValidId()
 	}
 
-	filter := bson.M{"_id": oid}
+	filter := db.Map{"_id": oid}
 	if err := c.BodyParser(&params); err != nil {
 		return utils.ErrBadRequest()
 	}
 
 	if err := h.store.UserStore.UpdateUser(ctx, filter, params); err != nil {
-		return err
+		return utils.NewError(http.StatusBadRequest, false, err.Error())
 	}
 
 	res := map[string]any{

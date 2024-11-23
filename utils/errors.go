@@ -53,7 +53,7 @@ func ErrBadRequest() Error {
 	return Error{
 		Code:    http.StatusBadRequest,
 		Success: false,
-		Err:     "Inavlid json request",
+		Err:     "Invalid json request",
 	}
 }
 

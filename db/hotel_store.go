@@ -12,9 +12,9 @@ import (
 
 type HotelStore interface {
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
-	GetHotels(context.Context, bson.M) ([]*types.Hotel, error)
+	GetHotels(context.Context, Map) ([]*types.Hotel, error)
 	GetHotelById(context.Context, string) (*types.Hotel, error)
-	Update(context.Context, bson.M, bson.M) error
+	Update(context.Context, Map, Map) error
 }
 
 type MongoHotelStore struct {
@@ -38,7 +38,7 @@ func (h *MongoHotelStore) InsertHotel(ctx context.Context, hotel *types.Hotel) (
 	return hotel, nil
 }
 
-func (h *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M) ([]*types.Hotel, error) {
+func (h *MongoHotelStore) GetHotels(ctx context.Context, filter Map) ([]*types.Hotel, error) {
 
 	cur, err := h.coll.Find(ctx, filter)
 	if err != nil {
@@ -67,11 +67,7 @@ func (h *MongoHotelStore) GetHotelById(ctx context.Context, id string) (*types.H
 	return &hotel, nil
 }
 
-
-
-
-
-func (h *MongoHotelStore) Update(ctx context.Context, filter bson.M, params bson.M) error {
+func (h *MongoHotelStore) Update(ctx context.Context, filter Map, params Map) error {
 
 	res, err := h.coll.UpdateOne(ctx, filter, params)
 

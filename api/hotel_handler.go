@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"supplier-backend/db"
 	"supplier-backend/utils"
 
@@ -25,7 +24,7 @@ func NewHotelHandler(store *db.Store) *HotelHandler {
 
 func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 	//FILTER
-	filter := bson.M{}
+	filter := db.Map{}
 
 	//GET DATA
 	hotels, err := h.store.HotelStore.GetHotels(c.Context(), filter)
@@ -48,7 +47,7 @@ func (h *HotelHandler) HandleGetHotel(c *fiber.Ctx) error {
 	hotel, err := h.store.HotelStore.GetHotelById(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return utils.NewError(http.StatusBadRequest, false, "No found")
+			return utils.ErrResourceNotFound("hotels")
 		}
 		return utils.ErrResourceNotFound("hotel")
 	}

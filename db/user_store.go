@@ -12,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type Map map[string]any
+
 type Dropper interface {
 	Drop(context.Context) error
 }
@@ -23,7 +25,7 @@ type UserStore interface {
 	GetUsers(context.Context) ([]*types.User, error)
 	InsertUser(context.Context, *types.User) (*types.User, error)
 	DeleteUser(context.Context, string) error
-	UpdateUser(ctx context.Context, filter bson.M, update types.UpdateUser) error
+	UpdateUser(ctx context.Context, filter Map, update types.UpdateUser) error
 }
 
 type MongoUserStore struct {
@@ -102,7 +104,7 @@ func (s *MongoUserStore) DeleteUser(ctx context.Context, id string) error {
 	return errors.New("user could not delete")
 }
 
-func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, values types.UpdateUser) error {
+func (s *MongoUserStore) UpdateUser(ctx context.Context, filter Map, values types.UpdateUser) error {
 
 	updates := bson.D{
 		{Key: "$set", Value: values.ToBSON()},
