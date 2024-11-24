@@ -45,4 +45,8 @@ func main() {
 	booking := fixtures.AddBooking(store, user.ID, room.ID, 1, time.Now(), time.Now().AddDate(0, 0, 5), false)
 	fmt.Printf("The booking is -> %v", booking)
 
+	for i := 0; i < 300; i++ {
+		fixtures.AddHotel(store, fmt.Sprintf("Bellucia %v", i), fmt.Sprintf("France %v", i), 5, nil)
+	}
+
 }

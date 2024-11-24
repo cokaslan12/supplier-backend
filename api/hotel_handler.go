@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"supplier-backend/db"
+	"supplier-backend/types"
 	"supplier-backend/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,11 +24,17 @@ func NewHotelHandler(store *db.Store) *HotelHandler {
 }
 
 func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
+
+	var hFilter types.HotelQueryParams
+	if err := c.QueryParser(&hFilter); err != nil {
+		return utils.ErrBadRequest()
+	}
+
 	//FILTER
-	filter := db.Map{}
+	filter := db.Map{"rating": hFilter.Rating}
 
 	//GET DATA
-	hotels, err := h.store.HotelStore.GetHotels(c.Context(), filter)
+	hotels, err := h.store.HotelStore.GetHotels(c.Context(), filter, &hFilter.Pagination)
 	if err != nil {
 		return utils.ErrResourceNotFound("hotels")
 	}

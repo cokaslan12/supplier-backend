@@ -1,6 +1,8 @@
 package types
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Hotel struct {
 	ID       primitive.ObjectID   `bson:"_id,omitempty" json:"id,omitempty`
@@ -8,4 +10,9 @@ type Hotel struct {
 	Location string               `bson:"location" json:"location"`
 	Rooms    []primitive.ObjectID `bson:"rooms" json:"rooms"`
 	Rating   int                  `bson:"rating" json:"rating"`
+}
+
+type HotelQueryParams struct {
+	Pagination//me make it inherits
+	Rating int
 }
