@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"supplier-backend/types"
 
@@ -33,8 +34,9 @@ type MongoUserStore struct {
 }
 
 func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
+	dbName := os.Getenv(MongoDBNameEnvName)
 	return &MongoUserStore{
-		coll: client.Database(DB_NAME).Collection(USER_COL),
+		coll: client.Database(dbName).Collection(USER_COL),
 	}
 }
 

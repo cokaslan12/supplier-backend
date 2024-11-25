@@ -4,28 +4,36 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"supplier-backend/api"
 	"supplier-backend/db"
 	"supplier-backend/db/fixtures"
 	"time"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	//MARK: SET CONTEXT
-	ctx := context.TODO()
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+	//MARK: SET CONSTANT VALUES
+	var (
+		ctx           = context.TODO()
+		mongoEndPoint = os.Getenv("MONGO_DB_TEST_URL")
+		mongoDBName   = os.Getenv("MONGO_DB_NAME")
+	)
 
 	//MARK: SETUP MONGO DB
-	client, err := mongo.Connect(ctx, options.Client().
-		ApplyURI(db.DB_URI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoEndPoint))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	//MARK: DROP DATABASE
-	if err = client.Database(db.DB_NAME).Drop(ctx); err != nil {
+	if err = client.Database(mongoDBName).Drop(ctx); err != nil {
 		log.Fatal(err)
 	}
 

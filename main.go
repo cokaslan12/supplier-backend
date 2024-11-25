@@ -2,28 +2,33 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
+	"os"
 	"supplier-backend/api"
 	"supplier-backend/db"
 	"supplier-backend/middleware"
 	"supplier-backend/utils"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+//Configuration
+//1. MongoDB endpoint
+//2. ListenAddress of your HTTP server
+//3. JWT secret
+//4. MongoDBName
 
 var config = fiber.Config{
 	ErrorHandler: utils.ErrorHandler,
 }
 
 func main() {
-	listenAddr := flag.String("listenAddr", ":2000", "The address of backend")
-	flag.Parse()
-
+	mongoEndPoint := os.Getenv("MONGO_DB_URL")
 	client, mongoErr := mongo.Connect(context.TODO(), options.Client().
-		ApplyURI(db.DB_URI))
+		ApplyURI(mongoEndPoint))
 	if mongoErr != nil {
 		log.Fatal(mongoErr)
 	}
@@ -80,9 +85,17 @@ func main() {
 	apiV1.Get("/booking/:id", bookingHandler.HandleGetBooking)
 	apiV1.Get("/booking/:id/cancel", bookingHandler.HandleCancelBooking)
 
-	err := app.Listen(*listenAddr)
+	listenAddr := os.Getenv("HTTP_LISTEN_ADDR")
+
+	err := app.Listen(listenAddr)
 
 	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
 }

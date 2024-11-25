@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"os"
 	"supplier-backend/types"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,8 +24,9 @@ type MongoHotelStore struct {
 }
 
 func NewMongoHotelStore(client *mongo.Client) *MongoHotelStore {
+	dbName := os.Getenv(MongoDBNameEnvName)
 	return &MongoHotelStore{
-		coll: client.Database(DB_NAME).Collection(HOTEL_COL),
+		coll: client.Database(dbName).Collection(HOTEL_COL),
 	}
 }
 
