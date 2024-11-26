@@ -159,14 +159,14 @@ func TestAdminGetBookings(t *testing.T) {
 	//test non admin cannot access the bookings
 	reg = httptest.NewRequest("GET", "/bookings", nil)
 	reg.Header.Add("Content-Type", "application/json")
-	reg.Header.Add("X-Api-Token", CreateTokenFromUser(user))
+	reg.Header.Add("X-Api-Token", CreateTokenFromUser(adminUser))
 
 	resp, regErr = app.Test(reg)
 	if regErr != nil {
 		t.Error(regErr)
 	}
 
-	if resp.StatusCode == 200 {
+	if resp.StatusCode != 200 {
 		t.Fatalf("expected a non status code got %d", resp.StatusCode)
 	}
 

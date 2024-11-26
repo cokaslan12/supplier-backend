@@ -22,7 +22,7 @@ func main() {
 	//MARK: SET CONSTANT VALUES
 	var (
 		ctx           = context.TODO()
-		mongoEndPoint = os.Getenv("MONGO_DB_TEST_URL")
+		mongoEndPoint = os.Getenv("MONGO_DB_URL")
 		mongoDBName   = os.Getenv("MONGO_DB_NAME")
 	)
 
